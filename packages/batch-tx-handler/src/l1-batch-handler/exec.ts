@@ -7,15 +7,12 @@ import {
 } from './utils';
 import fs from 'fs';
 import args from '../getClargs';
-import { providers } from 'ethers';
+import { providers, Transaction } from 'ethers';
 
 export const startL1BatchHandler = async (
   sequencerTx: string,
   provider: providers.JsonRpcProvider,
 ) => {
-  if (!args.outputFile) {
-    throw new Error('No outputFile! (You should add --outputFile)');
-  }
   if (!args.l2NetworkId) {
     throw new Error('No l2NetworkId! (You should add --l2NetworkId)');
   }
@@ -25,13 +22,12 @@ export const startL1BatchHandler = async (
   const l2segments = decompressAndDecode(compressedData);
   const l2Msgs = getAllL2Msgs(l2segments);
 
-  const txHash: string[] = [];
+  const txs: Transaction[] = [];
   for (let i = 0; i < l2Msgs.length; i++) {
-    txHash.push(...decodeL2Msgs(l2Msgs[i]));
+    txs.push(...decodeL2Msgs(l2Msgs[i]));
   }
 
   console.log(
-    `Get all ${txHash.length} l2 transaction and ${l2Msgs.length} blocks in this batch, writing tx to ${args.outputFile}`,
+    `Get all ${txs.length} l2 transaction and ${l2Msgs.length} blocks in this batch`,
   );
-  fs.writeFileSync(args.outputFile, txHash.toString());
 };

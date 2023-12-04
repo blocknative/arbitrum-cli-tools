@@ -1,5 +1,4 @@
 import { startOpL1BatchHandler } from './op-l1-batch-handler/exec';
-import { startL2PrecompileHandler } from './l2-precompile-handler/exec';
 import * as dotenv from 'dotenv';
 import dotenvExpand from 'dotenv-expand';
 import args from './getClargs';
@@ -21,15 +20,6 @@ const main = async () => {
       // yargs will read l1TxHash as number wrongly so we need add this convert.
       const txHash = args.l1TxHash?.toString();
       await startOpL1BatchHandler(txHash, provider);
-      break;
-    case 'L2PrecompileHandler':
-      if (!process.env.L2RPC) {
-        throw new Error(`You need set l1 rpc in env in action: ${args.action}`);
-      }
-      const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC);
-      const l2Provider = new providers.JsonRpcProvider(process.env.L2RPC);
-      const l2BatchProvider = new providers.JsonRpcBatchProvider(process.env.L2RPC);
-      await startL2PrecompileHandler(l1Provider, l2Provider, l2BatchProvider);
       break;
     default:
       console.log(`Unknown action: ${args.action}`);

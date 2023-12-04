@@ -1,8 +1,11 @@
 import {
+  decodeAll,
   getRawData,
   processRawData,
+  processFrame,
+  decodeFrameTxs,
+  decodeBatches,
   decompressAndDecode,
-  getAllL2Msgs,
   decodeL2Msgs,
 } from './utils';
 import fs from 'fs';
@@ -13,11 +16,14 @@ export const startOpL1BatchHandler = async (
   sequencerTx: string,
   provider: providers.JsonRpcProvider,
 ) => {
-  if (!args.outputFile) {
-    throw new Error('No outputFile! (You should add --outputFile)');
-  }
-  const rawData = await getRawData(sequencerTx, provider);
-  const compressedData = processRawData(rawData);
+  await decodeAll(sequencerTx, provider);
+
+  //const rawData = await getRawData(sequencerTx, provider); // returns Uint8Array
+  //const frameData = processRawData(rawData); // returns Uint8Array
+  //const txData = processFrame(frameData); // returns Uint8Array[]
+
+  //const decodedTxData = decodeFrameTxs(txData); // returns Uint8Array[]
+  //const decodedTxData = decodeBatches(txData); // returns Uint8Array[]
   /*
   const l2segments = decompressAndDecode(compressedData);
   const l2Msgs = getAllL2Msgs(l2segments);

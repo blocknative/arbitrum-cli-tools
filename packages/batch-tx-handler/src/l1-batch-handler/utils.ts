@@ -4,6 +4,7 @@ import { rlp, bufArrToArr } from 'ethereumjs-util';
 import { Decoded, Input } from 'rlp';
 import { getL2Network } from '@arbitrum/sdk';
 import { Interface } from 'ethers/lib/utils';
+import { Transaction } from 'ethers';
 import { seqFunctionAbi } from './abi';
 
 const MaxL2MessageSize = 256 * 1024;
@@ -85,16 +86,14 @@ export const getAllL2Msgs = (l2segments: Uint8Array[]): Uint8Array[] => {
   return l2Msgs;
 };
 
-export const decodeL2Msgs = (l2Msgs: Uint8Array): string[] => {
-  const txHash: string[] = [];
+export const decodeL2Msgs = (l2Msgs: Uint8Array): Transaction[] => {
+  const txs: Transaction[] = [];
 
   const kind = l2Msgs[0];
   if (kind === L2MessageKind_SignedTx) {
     const serializedTransaction = l2Msgs.subarray(1); // remove kind tag
     const tx = ethers.utils.parseTransaction(serializedTransaction);
-    console.log(tx)
-    const currentHash = tx.hash!; // calculate tx hash
-    txHash.push(currentHash);
+    txs.push(tx);
   } else if (kind === L2MessageKind_Batch) {
     const remainData: Uint8Array = l2Msgs.subarray(1);
     const lengthOfData = remainData.length;
@@ -105,11 +104,11 @@ export const decodeL2Msgs = (l2Msgs: Uint8Array): string[] => {
       const endOfNext = current + nextSize;
       // read next segment data which range from ${current} to ${endOfNext}
       const nextData = remainData.subarray(Number(current), Number(endOfNext));
-      txHash.push(...decodeL2Msgs(nextData));
+      txs.push(...decodeL2Msgs(nextData));
       current = endOfNext;
     }
   }
-  return txHash;
+  return txs;
 };
 
 // Get related sequencer batch data from a sequencer batch submission transaction.
