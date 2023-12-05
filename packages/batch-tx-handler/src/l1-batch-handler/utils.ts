@@ -143,33 +143,7 @@ export const getRawData = (
   return rawData;
 
 };
-/*
-// Get related sequencer batch data from a sequencer batch submission transaction.
-export const getRawDataOld = async (
-  sequencerTx: string,
-  l2NetworkId: number,
-  provider: ethers.providers.JsonRpcProvider,
-): Promise<Uint8Array> => {
-  //Because current arbitrum-sdk doesn't support latest sequencer inbox contract, so we use ethersjs here directly.
-  const contractInterface = new Interface(seqFunctionAbi);
-  const l2Network = await getL2Network(l2NetworkId);
-  const txReceipt = await provider.getTransactionReceipt(sequencerTx);
-  const tx = await provider.getTransaction(sequencerTx);
-  if (!tx || !txReceipt || (txReceipt && !txReceipt.status)) {
-    throw new Error('No such a l1 transaction or transaction reverted');
-  }
 
-  if (tx.to !== l2Network.ethBridge.sequencerInbox) {
-    throw new Error('Not a sequencer inbox transaction');
-  }
-
-  const funcData = contractInterface.decodeFunctionData('addSequencerL2BatchFromOrigin', tx.data);
-  console.log(funcData);
-  const seqData = funcData['data'].substring(2); //remove '0x'
-  const rawData = Uint8Array.from(Buffer.from(seqData, 'hex'));
-  return rawData;
-};
-*/
 //TODO: get all startBlock tx in this batch
 export const getAllStartBlockTx = () => {};
 
