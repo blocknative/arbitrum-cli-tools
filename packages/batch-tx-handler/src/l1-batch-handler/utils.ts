@@ -3,7 +3,7 @@ import brotli from 'brotli';
 import { rlp, bufArrToArr } from 'ethereumjs-util';
 import { Decoded, Input } from 'rlp';
 import { getL2Network } from '@arbitrum/sdk';
-import { Interface } from 'ethers/lib/utils';
+import { Interface, Result } from 'ethers/lib/utils';
 import { Transaction } from 'ethers';
 import { seqFunctionAbi } from './abi';
 
@@ -112,7 +112,40 @@ export const decodeL2Msgs = (l2Msgs: Uint8Array): Transaction[] => {
 };
 
 // Get related sequencer batch data from a sequencer batch submission transaction.
-export const getRawData = async (
+export const getInputData = async (
+  sequencerTx: string,
+  l2NetworkId: number,
+  provider: ethers.providers.JsonRpcProvider,
+): Promise<Result> => {
+  //Because current arbitrum-sdk doesn't support latest sequencer inbox contract, so we use ethersjs here directly.
+  const contractInterface = new Interface(seqFunctionAbi);
+  const l2Network = await getL2Network(l2NetworkId);
+  const txReceipt = await provider.getTransactionReceipt(sequencerTx);
+  const tx = await provider.getTransaction(sequencerTx);
+  if (!tx || !txReceipt || (txReceipt && !txReceipt.status)) {
+    throw new Error('No such a l1 transaction or transaction reverted');
+  }
+
+  if (tx.to !== l2Network.ethBridge.sequencerInbox) {
+    throw new Error('Not a sequencer inbox transaction');
+  }
+
+  const funcData = contractInterface.decodeFunctionData('addSequencerL2BatchFromOrigin', tx.data);
+  return funcData;
+};
+
+// Get related sequencer batch data from a sequencer batch submission transaction.
+export const getRawData = (
+  funcData: Result,
+): Uint8Array => {
+  const seqData = funcData['data'].substring(2); //remove '0x'
+  const rawData = Uint8Array.from(Buffer.from(seqData, 'hex'));
+  return rawData;
+
+};
+/*
+// Get related sequencer batch data from a sequencer batch submission transaction.
+export const getRawDataOld = async (
   sequencerTx: string,
   l2NetworkId: number,
   provider: ethers.providers.JsonRpcProvider,
@@ -131,11 +164,12 @@ export const getRawData = async (
   }
 
   const funcData = contractInterface.decodeFunctionData('addSequencerL2BatchFromOrigin', tx.data);
+  console.log(funcData);
   const seqData = funcData['data'].substring(2); //remove '0x'
   const rawData = Uint8Array.from(Buffer.from(seqData, 'hex'));
   return rawData;
 };
-
+*/
 //TODO: get all startBlock tx in this batch
 export const getAllStartBlockTx = () => {};
 
